@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Mount /persistent on top of overlay
+PREREQ='overlayroot'
+
+prereqs() {
+  echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+  prereqs
+  exit 0
+  ;;
+esac
+
+# Get hostname
+hostname=`hostname`
+# Remove any domain parts
+hostname=${hostname%%.*}
+
+# Get NFS server
+nfsserver=${nfsroot%%:*}
+
+# Mount the persistent filesystem
+nfsmount ${nfsserver}:/srv/jammy_persistent/${hostname} ${rootmnt}/persistent
