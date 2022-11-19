@@ -8,7 +8,7 @@ filesystem.  The main functionality is provided by the script
 ## netbootstrap.sh
 
 Make a netbooot-able Ubuntu root file system directory.  This involves the
-following steps:
+following steps (currently implemented only through step 3):
 
 ### Build the root filesystem
 
