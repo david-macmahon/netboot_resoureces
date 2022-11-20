@@ -309,12 +309,12 @@ chroot "${NETBOOT_ROOT}" update-initramfs -u
 
 NETBOOT_FSTAB="${NETBOOT_ROOT}/etc/fstab"
 # If file does not exist or it contains UNCONFIGURED text, create/modify it
-if ! [ -e "${NETBOOT_FSTAB}" ] || grep -q "# UNCONFIGURED FSTAB FOR BASE SYSTEM" "${NETBOOT_FSTAB}" 2>/dev/null
+if [ ! -e "${NETBOOT_FSTAB}" ] || grep -q "# UNCONFIGURED FSTAB FOR BASE SYSTEM" "${NETBOOT_FSTAB}" 2>/dev/null
 then
     echo "setting up ${NETBOOT_ROOT}/etc/fstab"
 
     padding="$(echo -n ${NETBOOT_ROOT} | sed 's/./ /g')"
-    cat >> "${NETBOOT_ROOT}/etc/fstab" <<EOF
+    cat > "${NETBOOT_FSTAB}" <<EOF
 # NFS mounts
 ${NFS_SERVER}:${NETBOOT_ROOT}  /      nfs  ro,hard,nointr,nfsvers=3  0  0
 ${NFS_SERVER}:/home${padding:5}  /home  nfs  rw,hard,nointr,nfsvers=3  0  0
