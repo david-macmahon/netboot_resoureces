@@ -260,7 +260,7 @@ fi
 
 if [ -e "${NETBOOT_ROOT}/usr/bin/tree" ]
 then
-    echo "not installled additional packages, ${NETBOOT_ROOT} appears to have them already"
+    echo "not installling additional packages, ${NETBOOT_ROOT} appears to have them already"
 else
     echo "installing additional packages"
     # Use chroot to add additional packages and remove unwanted ones
