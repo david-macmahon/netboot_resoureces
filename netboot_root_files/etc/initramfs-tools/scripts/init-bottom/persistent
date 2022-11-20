@@ -19,8 +19,8 @@ hostname=`hostname`
 # Remove any domain parts
 hostname=${hostname%%.*}
 
-# Get NFS server
-nfsserver=${nfsroot%%:*}
+# Mount persistent directory from peer of nfsroot
+nfspersistent=${nfsroot%/*}/persistent/${hostname}
 
 # Mount the persistent filesystem
-nfsmount ${nfsserver}:/srv/jammy_persistent/${hostname} ${rootmnt}/persistent
+nfsmount ${nfspersistent} ${rootmnt}/persistent
