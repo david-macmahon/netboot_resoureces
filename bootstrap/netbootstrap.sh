@@ -382,18 +382,15 @@ fi
 # 10. Copy some files to a "tftp boot" directory on the head node
 
 pxedir="${TFTPBOOT_DIR}/pxe"
-codenamedir="${TFTPBOOT_DIR}/${CODENAME}"
+codenamedir="${pxedir}/${CODENAME}"
 
-for d in "${pxedir}/pxelinux.cfg" "${codenamedir}"
-do
-    if [ -d "${d}" ]
-    then
-        echo "${d} already exists"
-    else
-        echo "creating ${d}"
-        mkdir -p "${d}"
-    fi    
-done
+if [ -d "${codenamedir}" ]
+then
+    echo "${codenamedir} already exists"
+else
+    echo "creating ${codenamedir}"
+    mkdir -p "${codenamedir}"
+fi
 
 echo "copying PXE files to ${pxedir}"
 for f in /usr/lib/PXELINUX/pxelinux.0 \
@@ -419,7 +416,7 @@ done
 chmod a+r "${NETBOOT_ROOT}"/boot/vmlinuz-*
 
 # Make PXE menu entries file
-menufile="${pxedir}/pxelinux.cfg/${CODENAME}.menu"
+menufile="${codenamedir}/pxelinux.menu"
 
 if [ -e "${menufile}" ]
 then
@@ -464,7 +461,7 @@ TOTALTIMEOUT 3000
 # is chosen as the default
 DEFAULT ${CODENAME}
 
-INCLUDE $(basename ${menufile})
+INCLUDE ${CODENAME}/pxelinux.menu
 
 MENU SEPARATOR
 
