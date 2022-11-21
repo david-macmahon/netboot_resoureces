@@ -18,6 +18,29 @@
 # Example: netbootstrap.sh 10.0.1.1 10.0.1.0/24
 # ```
 #
+# The bootstrap process can be customized by setting these environment
+# variables, shown here with their default values, before running
+# `netbootstrap.sh`:
+#
+# - Which release (by codename) and architecture to target
+#
+#   ```sh
+#   CODENAME="jammy"
+#   ARCH="amd64"
+#   ```
+#
+# - Where to install various netboot components
+#
+#   ```sh
+#   SRV_ROOT="/srv"
+#   ```
+#
+# - Where to install files for TFTP
+#
+#   ```sh
+#   TFTPBOOT_DIR="${SRV_ROOT}/tftpboot"
+#   ```
+#
 # ## Overview
 #
 # Make a netbooot-able Ubuntu root file system (rootfs) directory.  This
@@ -161,20 +184,25 @@
 
 # The variables here allow for some level of customization by hacking this
 # script.  Maybe one day we'll have proper command line argument parsing.
+# For now, setting the `CODENAME`, `ARCH`, `SRV_ROOT`, and `TFTPBOOT_DIR`
+# environment variables before calling this script will override the defaults
+# set here.
 
 # Which release (by codename) and architecture to target
-CODENAME=jammy
-ARCH=amd64
+CODENAME="${CODENAME:-jammy}"
+ARCH="${ARCH:-amd64}"
 
 # Where to install various netboot components
-SRV_ROOT=/srv
+SRV_ROOT="${SRV_ROOT:-/srv}"
+
+# Where to install files for TFTP
+TFTPBOOT_DIR="${TFTPBOOT_DIR:-${SRV_ROOT}/tftpboot}"
+
+# The variables below here are not typically overridden
+
 NETBOOT_ROOT="${SRV_ROOT}/${CODENAME}/rootfs.${ARCH}"
 PERSISTENT_ROOT="${SRV_ROOT}/${CODENAME}/persistent"
 # Use exsiting value of TFTPBOOT_DIR, if any
-if [ -z "${TFTPBOOT_DIR}" ]
-then
-    TFTPBOOT_DIR="${SRV_ROOT}/tftpboot"
-fi
 
 # Options for NFS exports
 EXPORT_OPTS="rw,no_root_squash,no_subtree_check"

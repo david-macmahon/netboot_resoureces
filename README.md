@@ -24,6 +24,28 @@ the netboot NFS server.
 Example: netbootstrap.sh 10.0.1.1 10.0.1.0/24
 ```
 
+The bootstrap process can be customized by setting these environment variables,
+shown here with their default values, before running `netbootstrap.sh`:
+
+- Which release (by codename) and architecture to target
+
+  ```sh
+  CODENAME="jammy"
+  ARCH="amd64"
+  ```
+
+- Where to install various netboot components
+
+  ```sh
+  SRV_ROOT="/srv"
+  ```
+
+- Where to install files for TFTP
+
+  ```sh
+  TFTPBOOT_DIR="${SRV_ROOT}/tftpboot"
+  ```
+
 ### What it does
 
 The `netbootstrap.sh` script performs two main function:
