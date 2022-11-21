@@ -117,14 +117,11 @@ node.
 
 8. Install a few packages on the head node (that may already be installed):
 
-   With the exception of `ansible`, the following packages are required on the
-   head node for netbooting.  The `ansible` package is required to make use of
-   other netboot adminsitration resources.
+   The following packages are required on the head node for netbooting.
 
    - nfs-kernel-server
    - syslinux-common
    - pxelinux
-   - ansible
 
 9. Setup `/etc/exports` to export the rootfs and persistentfs
 

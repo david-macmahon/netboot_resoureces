@@ -50,7 +50,6 @@
 #    - nfs-kernel-server
 #    - syslinux-common
 #    - pxelinux
-#    - ansible
 #
 # 9. Setup `/etc/exports` to export the rootfs and persistentfs
 #
@@ -129,14 +128,11 @@
 #
 # 8. Install a few packages on the head node (that may already be installed):
 #
-# With the exception of `ansible`, the following packages are required on the
-# head node for netbooting.  The `ansible` package is required to make use of
-# other netboot adminsitration resources.
+# The following packages are required on the # head node for netbooting.
 #
 #    - nfs-kernel-server
 #    - syslinux-common
 #    - pxelinux
-#    - ansible
 #
 # 9. Setup `/etc/exports` to export the rootfs and persistentfs
 #
@@ -274,7 +270,7 @@ else
     #--- choose “Dialog” and "high" ---
     # === Install additional packages (if not already installed) ===
     chroot "${NETBOOT_ROOT}" apt install -y 'server-minimal^' 'openssh-server^' linux-generic nfs-common --no-install-recommends
-    chroot "${NETBOOT_ROOT}" apt install -y ansible apt-utils less tree
+    chroot "${NETBOOT_ROOT}" apt install -y apt-utils less tree
     # === Remove unwanted packages ===
     chroot "${NETBOOT_ROOT}" apt remove -y --purge snapd unattended-upgrades apparmor plymouth
     chroot "${NETBOOT_ROOT}" apt remove -y --purge --autoremove landscape-common ubuntu-release-upgrader-core update-notifier-common
@@ -332,10 +328,9 @@ fi
 #    - nfs-kernel-server
 #    - syslinux-common
 #    - pxelinux
-#    - ansible
 
-echo "installing packages: nfs-kernel-server syslinux-common pxelinux ansible"
-apt install -y nfs-kernel-server syslinux-common pxelinux ansible
+echo "installing packages: nfs-kernel-server syslinux-common pxelinux"
+apt install -y nfs-kernel-server syslinux-common pxelinux
 
 # 9. Setup `/etc/exports` to export the rootfs and persistentfs
 
