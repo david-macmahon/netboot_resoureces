@@ -1,0 +1,30 @@
+# Ansible playbook to setup the top-level persistent directories for all hosts
+# in the netboot group.  The canonical name is used for the host-specific
+# subdirectory name and a symlink named after the functional name will point to
+# that canonical name.
+---
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  tasks:
+    - name: ensure persistent root exists
+      file:
+        state: directory
+        path: "{{ persistent_root }}"
+
+    - name: create persistent subdirectories
+      file:
+        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        state: directory
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: create /srv/persistent symlinks
+      file:
+        state: link
+        path: "{{ persistent_root }}/{{ item }}"
+        src: "{{ hostvars[item].canonical_name }}"
+        force: "{{ ansible_check_mode }}"
+      loop: "{{ groups.netboot_nodes }}"
