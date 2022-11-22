@@ -1,0 +1,91 @@
+# Ansible playbook to setup `/etc/ethers` and `/etc/hosts` entries for MAC/IP
+# addresses and canonical/functional names as described in the
+# `canonical_names` variable, typically defined in the
+# `group_vars/head_nodes/canonical_names.yml` file, and the `netbooot_nodes`
+# group of the inventory file.
+---
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  vars:
+    ipmi_suffux: "{{ ipmi_suffix|default('x', true) }}"
+  tasks:
+    - name: Purge ethers file of IPMI MACs
+      lineinfile:
+        path: /etc/ethers
+        state: absent
+        regexp: "^{{ canonical_names[hostvars[item].canonical_name].ipmi_mac }}\\s"
+      register: ethers_ipmi_purge
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: Purge ethers file of eth0 MACs
+      lineinfile:
+        path: /etc/ethers
+        state: absent
+        regexp: "^{{ canonical_names[hostvars[item].canonical_name].eth0_mac }}\\s"
+      register: ethers_eth0_purge
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: Populate ethers file with host specific comment lines
+      lineinfile:
+        path: /etc/ethers
+        create: true
+        regexp: "^# Ansible-managed entries for {{ item }} .{{ hostvars[item].canonical_name }}.$"
+        line: "# Ansible-managed entries for {{ item }} ({{ hostvars[item].canonical_name }})"
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: Populate ethers file with IPMI MACs
+      lineinfile:
+        path: /etc/ethers
+        create: true
+        line: "{{ canonical_names[hostvars[item].canonical_name].ipmi_mac | default('%-17s' | format('# TBD'), true) }}  {{ hostvars[item].ipmi_ip }}"
+        insertafter: "^# Ansible-managed entries for {{ item }} .{{ hostvars[item].canonical_name }}.$"
+      register: ethers_ipmi
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: Populate ethers file with eth0 MACs
+      lineinfile:
+        path: /etc/ethers
+        create: true
+        regexp: "  {{ item }}.{{ netboot_domain }}$"
+        line: "{{ canonical_names[hostvars[item].canonical_name].eth0_mac | default('%-17s' | format('# TBD'), true) }}  {{ hostvars[item].eth0_ip }}"
+        insertafter: "^# Ansible-managed entries for {{ item }} .{{ hostvars[item].canonical_name }}.$"
+      register: ethers_eth0
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: Add comment to hosts file
+      lineinfile:
+        path: /etc/hosts
+        create: true
+        regexp: "^# The following entries are managed by ansible$"
+        line: "# The following entries are managed by ansible"
+
+    - name: Populate hosts file with ipmi IPs
+      lineinfile:
+        path: /etc/hosts
+        create: true
+        regexp: "  {{ hostvars[item].canonical_name }}{{ ipmi_suffix }}.{{ ipmi_domain }}$"
+        line: "{{ '%-15s' | format(hostvars[item].ipmi_ip | default('# TBD', true)) }}  {{ '%-20s' | format(item + ipmi_suffix + '.' + ipmi_domain) }}  {{ hostvars[item].canonical_name }}{{ ipmi_suffix }}.{{ ipmi_domain }}"
+        insertafter: "^# The following entries are managed by ansible$"
+      register: hosts_ipmi
+      loop: "{{ groups.netboot_nodes|reverse }}"
+
+    - name: Populate hosts file with eth0 IPs
+      lineinfile:
+        path: /etc/hosts
+        create: true
+        regexp: "  {{ hostvars[item].canonical_name }}.{{ netboot_domain }}( |$)"
+        line: "{{ '%-15s' | format(hostvars[item].eth0_ip | default('# TBD', true)) }}  {{ '%-20s' | format(item + '.' + netboot_domain) }}  {{ '%-20s' | format(hostvars[item].canonical_name + '.' + netboot_domain) }}{{ '  ' + site_prefix + '-' + item + '.' + netboot_domain if site_prefix is defined else '' }}"
+        insertafter: "^# The following entries are managed by ansible$"
+      register: hosts_eth0
+      loop: "{{ groups.netboot_nodes|reverse}}"
+
+    - name: hup dnsmasq to reload ethers and hosts
+      shell: "pkill -HUP dnsmasq"
+      when: >
+        ethers_ipmi_purge.changed or
+        ethers_eth0_purge.changed or
+        ethers_ipmi.changed or
+        ethers_eth0.changed or
+        hosts_eth0.changed or
+        hosts_ipmi.changed
