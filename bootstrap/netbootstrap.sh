@@ -473,7 +473,7 @@ else
     prettyname="$(sed -n '/PRETTY_NAME=/{s/^.*=//;s/"//g;p}' "${NETBOOT_ROOT}/etc/os-release")"
     cat > "${defaultfile}" <<EOF
 UI menu.c32
-MENU TITLE Super Amazing PXE Boot Menu
+MENU TITLE ${NETBOOT_ORGNAME:-Super Amazing} PXE Boot Menu
 
 # Wait 5 seconds unless the user types something, but
 # always boot after 5 minutes
