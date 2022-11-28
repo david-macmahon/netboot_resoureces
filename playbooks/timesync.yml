@@ -1,0 +1,31 @@
+# Setup rsyslog on for netboot cluster.
+#
+# Netboot nodes to send log messages to the head node via UDP port 514.
+# Head node logs netboot messages to `/var/log/<HOSTNAME>` (on head node).
+---
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  tasks:
+    - name: ensure ntp package is installed
+      apt:
+        name: ntp
+        state: present
+    - name: template conf files to /etc/rsyslog.d
+      template:
+        src: 'files/headnode/etc/ntp.conf'
+        dest: '/etc/ntp.conf'
+    - name: restart ntp
+      systemd:
+        name: ntp.service
+        state: restarted
+      when: "not ansible_check_mode"
+
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: ensure systemd-timesyncd package is installed
+      apt:
+        name: systemd-timesyncd
+        state: present
