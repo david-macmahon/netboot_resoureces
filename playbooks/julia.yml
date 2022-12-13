@@ -1,0 +1,44 @@
+# Ansible playbook to install julia from downloaded tarball
+---
+- hosts: blh0
+  gather_facts: false
+  become: true
+  vars:
+    # Latest version
+    julia_version: '1.8.3'
+    julia_checksum: 'sha256:671cf3a450b63a717e1eedd7f69087e3856f015b2e146cb54928f19a3c05e796'
+    ## Latest LTS version
+    #julia_version: '1.6.7'
+    #julia_checksum: 'sha256:6c4522d595e4cbcd00157ac458a72f8aec01757053d2073f99daa39e442b2a36'
+    julia_base: /opt/julia
+  tasks:
+    - name: make directory for julia distribution download
+      file:
+        path: "{{ julia_base }}/download"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+
+    - name: download julia
+      get_url:
+        url: "https://julialang-s3.julialang.org/bin/linux/x64/{{ julia_version.split('.')[0:2]|join('.') }}/julia-{{ julia_version }}-linux-x86_64.tar.gz"
+        dest: "{{ julia_base }}/download"
+        checksum: "{{ julia_checksum }}"
+
+    - name: unarchive julia
+      unarchive:
+        src: "{{ julia_base }}/download/julia-{{ julia_version }}-linux-x86_64.tar.gz"
+        dest: "{{ julia_base }}"
+        remote_src: true
+        creates: "{{ julia_base }}/julia-{{ julia_version }}/bin/julia"
+
+    - name: create julia symlink in /usr/local/bin
+      file:
+        state: link
+        src: "{{ julia_base }}/julia-{{ julia_version }}/bin/julia"
+        path: "/usr/local/bin/{{ item }}"
+        force: "{{ ansible_check_mode }}"
+      loop:
+        - "julia"
+        - "julia{{ julia_version.split('.')[0:2]|join() }}"
