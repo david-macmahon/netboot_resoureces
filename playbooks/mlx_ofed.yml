@@ -1,0 +1,133 @@
+# Ansible playbook to install Mellanox OFED drivers on netboot nodes.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  vars:
+    mellanox_dist: /opt/mellanox/downloads
+    ubuntu_version: "22.04"
+    #oefd_version: 4.7-3.2.9.0
+    #oefd_md5: 8d5538a269789ff98731cd507f21a7b7
+    #oefd_version: 4.9-5.1.0.0 # Last version with ConnectX-3 support
+    oefd_version: 5.8-1.0.1.1 # ConnectX-4 and above support
+    oefd_md5: 4e08bfed9b3ffb7f0b6337f966915880
+  tasks:
+    - name: install prerequisite packages to netboot root
+      apt:
+        name:
+          # This list for Ubuntu came from the release notes, but some
+          # (hopefully redundant) entries have been commented out.
+          - perl
+          - dpkg
+          - autotools-dev
+          - autoconf
+          - libtool
+          #- automake1.10
+          - automake
+          - m4
+          - dkms
+          - debhelper
+          - tcl
+          #- tcl8.4
+          #- tcl8.4
+          - chrpath
+          - swig
+          - graphviz
+          - tcl-dev
+          #- was tcl8.4-dev
+          #- tcl8.6-dev
+          #- tk-dev
+          #- was tk8.4-dev
+          #- tk8.6-dev
+          - bison
+          - flex
+          - dpatch
+          - zlib1g-dev
+          - curl
+          - libcurl4-gnutls-dev
+          # Ubuntu 22.04 calls this python3-libxml2
+          # previous versions called it python-libxml2
+          - python3-libxml2
+          # In Ubuntu 18.10 and above, libvirt-bin was split into these two packages
+          #- libvirt-bin
+          - libvirt-daemon-system
+          - libvirt-clients
+          - libvirt0
+          #- was libnl-dev, but did not exist in Ubuntu 16.04/20.04/22.04
+          - libnl-3-dev
+          - libglib2.0-dev
+          # In Ubuntu 20.04 and later, libgfortran3 is no longer supported
+          #- libgfortran3
+          - libgfortran5
+          #- automake
+          #- m4
+          - pkg-config
+          #- was libnuma
+          - libnuma1
+          - logrotate
+          - ethtool
+          - lsof
+          # quilt is not in the 5.8 release notes, but it was in earlier
+          # release notes and it's relatively self-contained so we include it
+          # here anyway.
+          - quilt
+
+    - name: get target of /boot/vmlinuz symlink
+      command:
+        cmd: "readlink -e /boot/vmlinuz"
+      register: real_vmlinuz_path
+      changed_when: false
+
+    - name: make directory for mellanox distribution download
+      file:
+        path: "{{ mellanox_dist }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+
+    - name: download OFED
+      get_url:
+        url: "http://www.mellanox.com/downloads/ofed/MLNX_OFED-{{ oefd_version }}/MLNX_OFED_LINUX-{{ oefd_version }}-ubuntu{{ ubuntu_version }}-x86_64.tgz"
+        dest: "{{ mellanox_dist }}/MLNX_OFED_LINUX-{{ oefd_version }}-ubuntu{{ ubuntu_version }}-x86_64.tgz"
+        checksum: "md5:{{ oefd_md5 }}"
+
+    - name: unarchive OFED
+      unarchive:
+        src: "{{ mellanox_dist }}/MLNX_OFED_LINUX-{{ oefd_version }}-ubuntu{{ ubuntu_version }}-x86_64.tgz"
+        dest: "{{ mellanox_dist }}"
+        remote_src: true
+        creates: "{{ mellanox_dist }}/MLNX_OFED_LINUX-{{ oefd_version }}-ubuntu{{ ubuntu_version }}-x86_64"
+
+    - name: run mellnox installer
+      command:
+      args:
+        argv:
+          - "/usr/bin/env"
+          - "KVERSION={{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}"
+          - /bin/sh
+          - "{{ mellanox_dist }}/MLNX_OFED_LINUX-{{ oefd_version }}-ubuntu{{ ubuntu_version }}-x86_64/mlnxofedinstall"
+          - --force
+          - --dkms
+          - --disable-affinity
+          - --without-fw-update
+          - --basic
+          - --kernel
+          - "{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}"
+          - --kernel-sources
+          - "/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/build"
+
+    #- name: set modprobe options
+    #  lineinfile:
+    #    path: '/etc/modprobe.d/mlx4.conf'
+    #    line: 'options ib_uverbs disable_raw_qp_enforcement=1'
+    #    regexp: '^options ib_uverbs '
+    #    state: present
+    #    create: true
+    #    owner: root
+    #    group: root
+    #    mode: 644
+
+    - name: update initramfs image
+      command:
+        cmd: "update-initramfs -u"
