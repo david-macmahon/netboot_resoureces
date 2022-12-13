@@ -1,0 +1,77 @@
+# Ansible playbook to install NVIDIA CUDA toolkit  on netboot nodes.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  vars:
+    nvidia_dist: /opt/nvidia/downloads
+    cuda_version: "11.8.0"
+    cuda_version_drv: "520.61.05"
+    cuda_md5: d6cf26349e5a4104b8683e26b717fa22
+    # Override on command line with "-e 'install_driver=true'"
+    install_driver: false
+  tasks:
+    - name: get target of /boot/vmlinuz symlink
+      command:
+        cmd: "readlink -e /boot/vmlinuz"
+      register: real_vmlinuz_path
+      changed_when: false
+
+    - name: make directory for cuda distribution download
+      file:
+        path: "{{ nvidia_dist }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+
+    - name: download cuda installer
+      get_url:
+        url: "http://developer.download.nvidia.com/compute/cuda/{{ cuda_version }}/local_installers/cuda_{{ cuda_version }}_{{ cuda_version_drv }}_linux.run"
+        dest: "{{ nvidia_dist }}/cuda_{{ cuda_version }}_{{ cuda_version_drv }}_linux.run"
+        checksum: "md5:{{ cuda_md5 }}"
+
+    - name: allow non-admin users to profile CUDA code
+      lineinfile:
+        path: '/etc/modprobe.d/nvidia.conf'
+        line: 'options nvidia NVreg_RestrictProfilingToAdminUsers=0'
+        regexp: '^options nvidia '
+        state: present
+        create: true
+        owner: root
+        group: root
+        mode: 644
+      when: install_driver
+
+    - name: run nvidia installer
+      command:
+      args:
+        argv:
+          - "/usr/bin/env"
+          - "KVERSION={{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}"
+          - /bin/sh
+          - "{{ nvidia_dist }}/cuda_{{ cuda_version }}_{{ cuda_version_drv }}_linux.run"
+          - "{{ '--driver' if install_driver else '' }}"
+          - --silent
+          - --toolkit
+          - --samples
+          - "--installpath=/usr/local/cuda-{{ cuda_version }}"
+          - --no-opengl-libs
+          - --no-drm
+          - "--kernel-source-path=/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/build"
+
+    - name: create netboot /usr/local/cuda/cuda.sh
+      copy:
+        dest: "/usr/local/cuda-{{ cuda_version }}/cuda.sh"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          export CUDA_DIR=/usr/local/cuda-{{ cuda_version }}
+          export PATH=${CUDA_DIR}/bin:$PATH
+          export LD_LIBRARY_PATH=${CUDA_DIR}/lib64:$LD_LIBRARY_PATH
+
+    - name: update initramfs image
+      command:
+        cmd: "update-initramfs -u"
+      when: install_driver

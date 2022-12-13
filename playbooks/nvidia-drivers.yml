@@ -1,0 +1,59 @@
+# Ansible playbook to install NVIDIA kernel drivers on netboot nodes.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  vars:
+    nvidia_dist: /opt/nvidia/downloads
+    nvidia_version: "525.60.11"
+    nvidia_md5: 9c8e8d318555faa68eb3c0e014cbce56
+  tasks:
+    - name: get target of /boot/vmlinuz symlink
+      command:
+        cmd: "readlink -e /boot/vmlinuz"
+      register: real_vmlinuz_path
+      changed_when: false
+
+    - name: make directory for nvidia distribution download
+      file:
+        path: "{{ nvidia_dist }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+
+    - name: download nvidia installer
+      get_url:
+        url: "http://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_version }}/NVIDIA-Linux-x86_64-{{ nvidia_version }}.run"
+        dest: "{{ nvidia_dist }}/NVIDIA-Linux-x86_64-{{ nvidia_version }}.run"
+        checksum: "md5:{{ nvidia_md5 }}"
+
+    - name: allow non-admin users to profile CUDA code
+      lineinfile:
+        path: '/etc/modprobe.d/nvidia.conf'
+        line: 'options nvidia NVreg_RestrictProfilingToAdminUsers=0'
+        regexp: '^options nvidia '
+        state: present
+        create: true
+        owner: root
+        group: root
+        mode: 644
+
+    - name: run nvidia installer
+      command:
+      args:
+        argv:
+          - "/usr/bin/env"
+          - "KVERSION={{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}"
+          - /bin/sh
+          - "{{ nvidia_dist }}/NVIDIA-Linux-x86_64-{{ nvidia_version }}.run"
+          - --silent
+          - --dkms
+          - --no-drm
+          - --no-opengl-files
+          - --kernel-source-path
+          - "/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/build"
+
+    - name: update initramfs image
+      command:
+        cmd: "update-initramfs -u"
