@@ -452,13 +452,13 @@ else
 LABEL ${CODENAME}
     MENU LABEL ${prettyname}
     KERNEL ${CODENAME}/vmlinuz
-    APPEND initrd=${CODENAME}/initrd.img root=/dev/nfs nfsroot=${NFS_SERVER}:${NETBOOT_ROOT} net.ifnames=0 console=tty0 console=ttyS1,115200 ro
+    APPEND initrd=${CODENAME}/initrd.img root=/dev/nfs nfsroot=${NFS_SERVER}:${NETBOOT_ROOT} net.ifnames=0 blacklist=nouveau nouveau.modeset=0 console=tty0 console=ttyS1,115200 ro
     IPAPPEND 2
 
 LABEL ${CODENAME}overlayroot
     MENU LABEL ${prettyname} (w/ overlayroot)
     KERNEL ${CODENAME}/vmlinuz
-    APPEND initrd=${CODENAME}/initrd.img root=/dev/nfs nfsroot=${NFS_SERVER}:${NETBOOT_ROOT} net.ifnames=0 console=tty0 console=ttyS1,115200 ro overlayroot=tmpfs
+    APPEND initrd=${CODENAME}/initrd.img root=/dev/nfs nfsroot=${NFS_SERVER}:${NETBOOT_ROOT} net.ifnames=0 blacklist=nouveau nouveau.modeset=0 console=tty0 console=ttyS1,115200 ro overlayroot=tmpfs
     IPAPPEND 2
 EOF
 fi
