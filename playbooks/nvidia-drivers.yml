@@ -51,8 +51,7 @@
           - --dkms
           - --no-drm
           - --no-opengl-files
-          - --kernel-source-path
-          - "/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/build"
+          - "--kernel-name={{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}"
 
     - name: update initramfs image
       command:

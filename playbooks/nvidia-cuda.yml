@@ -59,6 +59,7 @@
           - --no-opengl-libs
           - --no-drm
           - "--kernel-source-path=/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/build"
+          - "--kernel-install-path=/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/kernel"
 
     - name: create netboot /usr/local/cuda/cuda.sh
       copy:
