@@ -22,7 +22,9 @@
 # variables, shown here with their default values, before running
 # `netbootstrap.sh`:
 #
-# - Which release (by codename) and architecture to target
+# - Which release (by codename) and architecture to target.  Technically,
+# `ARCH` defaults to `$(dpkg --print-architecture)`, but if that command fails
+# then the default of `amd64` is used.
 #
 #   ```sh
 #   CODENAME="jammy"
@@ -190,7 +192,7 @@
 
 # Which release (by codename) and architecture to target
 CODENAME="${CODENAME:-jammy}"
-ARCH="${ARCH:-amd64}"
+ARCH="${ARCH:-$(dpkg --print-architecture 2>/dev/null || echo 'amd64')}"
 
 # Where to install various netboot components
 SRV_ROOT="${SRV_ROOT:-/srv}"

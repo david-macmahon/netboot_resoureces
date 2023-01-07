@@ -27,7 +27,9 @@ Example: netbootstrap.sh 10.0.1.1 10.0.1.0/24
 The bootstrap process can be customized by setting these environment variables,
 shown here with their default values, before running `netbootstrap.sh`:
 
-- Which release (by codename) and architecture to target
+- Which release (by codename) and architecture to target.  Technically, `ARCH`
+  defaults to `$(dpkg --print-architecture)`, but if that command fails then
+  the default of `amd64` is used.
 
   ```sh
   CODENAME="jammy"
