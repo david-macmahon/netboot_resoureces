@@ -90,6 +90,10 @@ Read on for details of what the script does.
    `YYYYmmddHHMMSS` is the time of the backup, before any modifications are
    made.
 
+   This step also copies a utility script `nbroot` to `/usr/local/sbin` on the
+   head node.  This script is a convenience wrapper around `chroot` to simplify
+   `chroot`-ing to netboot root filesystems.
+
 3. chroot into rootfs and install additional packages (and remove some).
 
    This beefs up the netboot rootfs with more packages and removes some

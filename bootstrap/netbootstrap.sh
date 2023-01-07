@@ -109,6 +109,10 @@
 # `/etc/fstab.netbootstrap.YYYYmmddHHMMSS`, where `YYYYmmddHHMMSS` is the time
 # of the backup, before any modifications are made.
 #
+# This step also copies a utility script `nbroot` to `/usr/local/sbin` on the
+# head node.  This script is a convenience wrapper around `chroot` to simplify
+# `chroot`-ing to netboot root filesystems.
+#
 # 3. chroot into rootfs and install additional packages (and remove some).
 #
 # This beefs up the netboot rootfs with more packages and removes some
@@ -283,6 +287,9 @@ EOF
         echo "${FSTAB} is not /etc/fstab, skipping mounts"
     fi
 fi
+
+# Copy nbroot to head node /usr/local/sbin
+cp -u "${NBROOT_FILES}/usr/local/sbin/nbroot" "/usr/local/sbin/."
 
 # 3. `chroot` into rootfs and install addition packages (and remove some).
 

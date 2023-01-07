@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# usage: nbroot [CODENAME [ARCH [SRVROOT]]]
+#
+# CODENAME defaults to "jammy"
+# ARCH     defaults to "$(dpkg --print-architecture)"
+#                   or "amd64" if `dpkg` fails
+# SRVROOT  defaults to "/srv"
+#
+# This script simply runs: chroot "${SRVROOT}/${CODENAME}/rootfs.${ARCH}"
+
+CODENAME="${CODENAME:-${1:-jammy}}"
+ARCH="${ARCH:=${2:-$(dpkg --print-architecture 2>/dev/null || echo 'amd64')}}"
+SRVROOT="${SRVROOT:-${3:-/srv}}"
+
+# Ensure SRVROOT starts with a "/"
+SRVROOT="/${SRVROOT#/}"
+
+chroot "${SRVROOT}/${CODENAME}/rootfs.${ARCH}"
