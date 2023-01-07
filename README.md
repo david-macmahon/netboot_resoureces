@@ -84,10 +84,11 @@ Read on for details of what the script does.
    filesystem, then this script will assume that all of these mounts have been
    already configured.  If `/proc` is NOT mounted in the netboot root
    filesystem, this script will modify `/etc/fstab` to include lines that
-   specify how to mount `/proc`, `/sys` and `/dev/pts` in the netboot root
-   filesystem tree and then mount them.  The existing `/etc/fstab` is backed up
-   to `/etc/fstab.netbootstrap.YYYYmmddHHMMSS`, where `YYYYmmddHHMMSS` is the
-   time of the backup, before any modifications are made.
+   specify how to mount `/proc`, `/sys`, `/tmp`, and `/dev/pts` in the netboot
+   root filesystem tree and then mount them.  The existing `/etc/fstab` is
+   backed up to to `/etc/fstab.netbootstrap.YYYYmmddHHMMSS`, where
+   `YYYYmmddHHMMSS` is the time of the backup, before any modifications are
+   made.
 
 3. chroot into rootfs and install additional packages (and remove some).
 

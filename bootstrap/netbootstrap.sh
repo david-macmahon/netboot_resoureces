@@ -103,9 +103,9 @@
 # tree.  If `/proc` is already mounted in the netboot root filesystem, then this
 # script will assume that all of these mounts have been already configured.  If
 # `/proc` is NOT mounted in the netboot root filesystem, this script will modify
-# `/etc/fstab` to include lines that specify how to mount `/proc`, `/sys` and
-# `/dev/pts` in the netboot root filesystem tree and then mount them.  The
-# existing `/etc/fstab` is backed up to
+# `/etc/fstab` to include lines that specify how to mount `/proc`, `/sys`,
+# `/tmp`, and `/dev/pts` in the netboot root filesystem tree and then mount
+# them.  The existing `/etc/fstab` is backed up to
 # `/etc/fstab.netbootstrap.YYYYmmddHHMMSS`, where `YYYYmmddHHMMSS` is the time
 # of the backup, before any modifications are made.
 #
@@ -264,15 +264,17 @@ else
 # Mounts to make ${NETBOOT_ROOT} chroot-able
 proc    ${NETBOOT_ROOT}/proc     proc    defaults 0 0
 sysfs   ${NETBOOT_ROOT}/sys      sysfs   defaults 0 0
+tmpfs   ${NETBOOT_ROOT}/tmp      tmpfs   defaults 0 0
 devpts  ${NETBOOT_ROOT}/dev/pts  devpts  defaults 0 0
 # Bind mount ${NETBOOT_ROOT}/home if desired, but not strictly needed
 #/home   ${NETBOOT_ROOT}/home     none    bind     0 0
 EOF
 
-    # If modifying /etc/fstab, mount /proc, /sy, and /dev/pts in netboot root
+    # If modifying /etc/fstab, mount /proc, /sys, /tmp, and /dev/pts in netboot
+    # root
     if [ "${FSTAB}" = /etc/fstab ]
     then
-        for d in proc sys dev/pts
+        for d in proc sys tmp dev/pts
         do
             echo "mounting ${NETBOOT_ROOT}/$d"
             mount "${NETBOOT_ROOT}/$d"
