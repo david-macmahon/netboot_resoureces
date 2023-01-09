@@ -104,10 +104,11 @@
 # script will assume that all of these mounts have been already configured.  If
 # `/proc` is NOT mounted in the netboot root filesystem, this script will modify
 # `/etc/fstab` to include lines that specify how to mount `/proc`, `/sys`,
-# `/tmp`, and `/dev/pts` in the netboot root filesystem tree and then mount
-# them.  The existing `/etc/fstab` is backed up to
-# `/etc/fstab.netbootstrap.YYYYmmddHHMMSS`, where `YYYYmmddHHMMSS` is the time
-# of the backup, before any modifications are made.
+# and `/dev/pts`, as well as a tmpfs mount on `/tmp` and bind mount of `/homa`
+# in the netboot root filesystem tree and then mount them.  The existing
+# `/etc/fstab` is backed up to `/etc/fstab.netbootstrap.YYYYmmddHHMMSS`, where
+# `YYYYmmddHHMMSS` is the time of the backup, before any modifications are
+# made.
 #
 # This step also copies a utility script `nbroot` to `/usr/local/sbin` on the
 # head node.  This script is a convenience wrapper around `chroot` to simplify
@@ -270,8 +271,8 @@ proc    ${NETBOOT_ROOT}/proc     proc    defaults 0 0
 sysfs   ${NETBOOT_ROOT}/sys      sysfs   defaults 0 0
 tmpfs   ${NETBOOT_ROOT}/tmp      tmpfs   defaults 0 0
 devpts  ${NETBOOT_ROOT}/dev/pts  devpts  defaults 0 0
-# Bind mount ${NETBOOT_ROOT}/home if desired, but not strictly needed
-#/home   ${NETBOOT_ROOT}/home     none    bind     0 0
+# Bind mount /home to ${NETBOOT_ROOT}/home
+/home   ${NETBOOT_ROOT}/home     none    bind     0 0
 EOF
 
     # If modifying /etc/fstab, mount /proc, /sys, /tmp, and /dev/pts in netboot
