@@ -1,0 +1,13 @@
+network:
+  version: 2
+  ethernets:
+{% for iface, config in item.value | dictsort %}
+    {{ iface }}:
+      addresses:
+        {% for addr in config.addresses -%}
+        - "{{ addr }}" 
+        {%- endfor +%}
+      {{ "macaddress: \"" + config.macaddress + "\"" if config.macaddress }}
+      {{ "mtu: " + config.mtu|string if config.mtu }}
+      optional: true
+{% endfor %}

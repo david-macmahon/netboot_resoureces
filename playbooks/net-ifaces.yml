@@ -1,0 +1,21 @@
+# Ansible playbook to setup the netplan config files for the network interfaces
+# defined in the `net_ifaces` dictionary.
+---
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  tasks:
+    - name: ensure persistent netplan directories exists
+      file:
+        state: directory
+        path: "{{ persistent_root }}/{{ item.key }}/etc/netplan"
+      loop: "{{ net_ifaces | dict2items }}"
+
+    - name: create netplan files
+      template:
+        src: persistent/etc/netplan/net_ifaces.yaml
+        dest: "{{ persistent_root }}/{{ item.key }}/etc/netplan/net_ifaces.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      loop: "{{ net_ifaces | dict2items }}"
