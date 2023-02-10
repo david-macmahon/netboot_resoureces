@@ -292,7 +292,7 @@ fi
 # Copy nbroot to head node /usr/local/sbin
 cp -u "${NBROOT_FILES}/usr/local/sbin/nbroot" "/usr/local/sbin/."
 
-# 3. `chroot` into rootfs and install addition packages (and remove some).
+# 3. `chroot` into rootfs and install additional packages (and remove some).
 
 if [ -e "${NETBOOT_ROOT}/usr/bin/tree" ]
 then
@@ -310,7 +310,7 @@ else
     #--- choose “Dialog” and "high" ---
     # === Install additional packages (if not already installed) ===
     chroot "${NETBOOT_ROOT}" apt install -y 'server-minimal^' 'openssh-server^' linux-generic nfs-common --no-install-recommends
-    chroot "${NETBOOT_ROOT}" apt install -y apt-utils less tree
+    chroot "${NETBOOT_ROOT}" apt install -y apt-utils less networkd-dispatcher tree
     # === Remove unwanted packages ===
     chroot "${NETBOOT_ROOT}" apt remove -y --purge snapd unattended-upgrades apparmor plymouth
     chroot "${NETBOOT_ROOT}" apt remove -y --purge --autoremove landscape-common ubuntu-release-upgrader-core update-notifier-common
