@@ -484,6 +484,8 @@ then
 else
     echo "creating ${defaultfile}"
 
+    mkdir -p "$(dirname "${defaultfile}")"
+
     prettyname="$(sed -n '/PRETTY_NAME=/{s/^.*=//;s/"//g;p}' "${NETBOOT_ROOT}/etc/os-release")"
     cat > "${defaultfile}" <<EOF
 UI menu.c32
