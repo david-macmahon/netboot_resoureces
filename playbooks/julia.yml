@@ -1,6 +1,6 @@
 # Ansible playbook to install julia from downloaded tarball
 ---
-- hosts: blh0
+- hosts: netboot_root
   gather_facts: false
   become: true
   vars:
