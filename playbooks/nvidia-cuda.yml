@@ -58,6 +58,7 @@
           - "--installpath=/usr/local/cuda-{{ cuda_version }}"
           - --no-opengl-libs
           - --no-drm
+          - --override
           - "--kernel-source-path=/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/build"
           - "--kernel-output-path=/lib/modules/{{ real_vmlinuz_path.stdout|replace('/boot/vmlinuz-','') }}/kernel"
 
