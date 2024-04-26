@@ -1,0 +1,41 @@
+# Install useful development tools and packages.  The definition of "useful"
+# here is somewhat Breakthrough Listen specific.  Some of these packages may
+# already be installed as part of the bootstrap process or other ansible
+# playbook(s).
+#
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install useful dev tools and packages
+      apt:
+        state: present
+        name:
+          # basics
+          - gcc
+          - gcc-doc
+          - make
+          - make-doc
+          # autotools
+          - autoconf
+          - autoconf-doc
+          - automake
+          - autotools-dev
+          - libtool
+          - libtool-doc
+          # cmake and friends
+          - cmake
+          - cmake-doc
+          - ninja-build
+          - meson
+          # HDF5
+          - libhdf5-dev
+          - bitshuffle
+          # Capnp
+          - libcapnp-dev
+          - capnproto
+          # Sigproc
+          - gfortran
+          - libcfitsio-dev
+          - libgsl-dev
