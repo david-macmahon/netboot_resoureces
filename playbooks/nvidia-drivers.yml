@@ -5,8 +5,8 @@
   become: true
   vars:
     nvidia_dist: /opt/nvidia/downloads
-    nvidia_version: "525.60.11"
-    nvidia_md5: 9c8e8d318555faa68eb3c0e014cbce56
+    nvidia_version: "550.78"
+    nvidia_md5: c289987ebda8e9419a73e7e8e3409244
   tasks:
     - name: get target of /boot/vmlinuz symlink
       command:
