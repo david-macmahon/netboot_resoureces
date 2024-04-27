@@ -1,0 +1,46 @@
+# Ansible playbook to install the glusterfs-server package on a netboot root
+# filesystem.
+#
+# Installing the server package also installed the client package.  This also
+# installs (and runs) a tmpfiles.d configuration file to make /var/lib/glusterd
+# be a symlink pointing to ../../persistent/var/lib/glusterd.  This only
+# creates a dummy $netboot_root/persistent/var/lib/glusterd directory.  The
+# netboot nodes will get the directory created when they next boot or if
+# `systemd-tmpfiles` is run manually on the netboot nodes.
+#
+# OLD COMMENTS:
+# This does not enable/disable the service on any hosts nor does
+# it configure any gluster storage pools or volumes or bricks.  It only
+# downloads, builds, and installs the gluster software.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install glusterfs-server package
+      apt:
+        name: glusterfs-server
+        state: present
+
+    - name: copy glusterd.service file for tweaking
+      copy:
+        src: /usr/lib/systemd/system/glusterd.service
+        dest: /etc/systemd/system/glusterd.service
+        remote_src: true
+
+    - name: tweak glusterd.service file (make `systemctl enable glusterd` work)
+      lineinfile:
+        path: /etc/systemd/system/glusterd.service
+        line: "WantedBy=netboot-persistent.target"
+        regexp: "^WantedBy="
+
+    - name: install /etc/tmpfiles.d/glusterd.conf
+      copy:
+        src: files/netboot/etc/tmpfiles.d/glusterd.conf
+        dest: /etc/tmpfiles.d
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: run systemd-tmpfiles
+      command: systemd-tmpfiles --create /etc/tmpfiles.d/glusterd.conf
