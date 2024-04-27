@@ -1,0 +1,5 @@
+[Unit]
+Description=Netboot persistent target
+
+[Install]
+WantedBy=multi-user.target

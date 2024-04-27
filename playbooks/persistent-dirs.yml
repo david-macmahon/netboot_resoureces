@@ -1,7 +1,16 @@
 # Ansible playbook to setup the top-level persistent directories for all hosts
 # in the netboot group.  The canonical name is used for the host-specific
 # subdirectory name and a symlink named after the functional name will point to
-# that canonical name.
+# that canonical name.  It also creates the directory
+# `etc/systemd/system/netboot-persistent.target.wants` in each host specific
+# directory.
+#
+# This also creates the `/etc/systemd/system/netboot-persistent.target`
+# file in the netboot root file system as well as the symlink
+# `/etc/systemd/system/netboot-persistent.target.wants` that points to
+# `../../../persistent/etc/systemd/system/netboot-persistent.target.wants` and
+# the `/etc/systemd/system/multi-user.target.wants/netboot-persistent.target`
+# symlink that points to `../netboot-persistent.target`.
 ---
 - hosts: head_nodes
   gather_facts: false
@@ -14,7 +23,7 @@
 
     - name: create persistent subdirectories
       file:
-        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}"
+        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/systemd/system/netboot-persistent.target.wants"
         owner: "root"
         group: "root"
         mode: "0755"
@@ -28,3 +37,35 @@
         src: "{{ hostvars[item].canonical_name }}"
         force: "{{ ansible_check_mode }}"
       loop: "{{ groups.netboot_nodes }}"
+
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: copy netboot-persistent.target
+      copy:
+        src: files/headnode/etc/systemd/system/netboot-persistent.target
+        dest: /etc/systemd/system
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: add netboot-persistent.target to multi-user.wants
+      file:
+        state: link
+        path: /etc/systemd/system/multi-user.target.wants/netboot-persistent.target
+        src: ../netboot-persistent.target
+
+    - name: create dummy netboot-persistent.wants in netboot root /persistent
+      file:
+        path: /persistent/etc/systemd/system/netboot-persistent.target.wants
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        state: directory
+
+    - name: create netboot-persistent.wants symlink
+      file:
+        state: link
+        path: /etc/systemd/system/netboot-persistent.target.wants
+        src: ../../../persistent/etc/systemd/system/netboot-persistent.target.wants
