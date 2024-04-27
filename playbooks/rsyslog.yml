@@ -1,16 +1,26 @@
 # Setup rsyslog on for netboot cluster.
 #
 # Netboot nodes to send log messages to the head node via UDP port 514.
-# Head node logs netboot messages to `/var/log/<HOSTNAME>` (on head node).
+# Head node logs netboot messages to `/var/log/remote/<HOSTNAME>` (on head
+# node).
+#
+# The head node will only be configured if the `config_headnode` variable is
+# explicitly specified as `true` on the `ansible-playbook` command line using
+# `-e config_headnode=true`.
 ---
 - hosts: head_nodes
   gather_facts: false
   become: true
+  vars:
+    # Override on command line with "-e 'config_headnode=true'"
+    config_headnode: false
   tasks:
     - name: ensure rsyslog package is installed
       apt:
         name: rsyslog
         state: present
+      when: config_headnode
+
     - name: template conf files to /etc/rsyslog.d
       template:
         src: 'files/headnode/etc/rsyslog.d/{{ item }}'
@@ -19,10 +29,13 @@
         - 10-enable-udp.conf
         - 10-file-create-mode-0644.conf
         - 10-netboot-remote.conf
+      when: config_headnode
+
     - name: restart rsyslogd
       systemd:
         name: rsyslog.service
         state: restarted
+      when: config_headnode
 
 - hosts: netboot_root
   gather_facts: false
