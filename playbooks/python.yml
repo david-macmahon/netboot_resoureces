@@ -1,0 +1,27 @@
+# Setup python on netboot nodes.
+#
+# This installs `python2` (if applicable, see below) and `python-is-python3`.
+# The `python3` package is assumed to be already installed as part of the
+# bootstrap process.
+#
+# `python2` will only be installed if the `install_python2` variable is
+# explicitly specified as `true` on the `ansible-playbook` command line using
+# `-e install_python2=true` *and* netboot root is Ubuntu 22 or earlier.
+---
+- hosts: netboot_root
+  gather_facts: true
+  become: true
+  vars:
+    # Override on command line with "-e 'install_python2=true'"
+    install_python2: false
+  tasks:
+    - name: install python2
+      apt:
+        name: python2
+        state: present
+      when: install_python2 and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int <= 22
+
+    - name: install python-is-python3
+      apt:
+        name: python-is-python3
+        state: present
