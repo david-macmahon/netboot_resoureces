@@ -1,0 +1,11 @@
+# Install nfs-kernel-server on netboot nodes.
+#
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install nfs-kernel-server
+      apt:
+        name: nfs-kernel-server
+        state: present
