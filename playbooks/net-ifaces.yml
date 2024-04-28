@@ -8,8 +8,9 @@
     - name: ensure persistent netplan directories exists
       file:
         state: directory
-        path: "{{ persistent_root }}/{{ item.key }}/etc/netplan"
-      loop: "{{ net_ifaces | dict2items }}"
+        path: "{{ persistent_root }}/{{ item }}/etc/netplan"
+      loop: "{{ net_ifaces.keys() }}"
+      when: item in groups.netboot_nodes
 
     - name: create netplan files
       template:
@@ -19,3 +20,6 @@
         group: root
         mode: '0644'
       loop: "{{ net_ifaces | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      when: item.key in groups.netboot_nodes
