@@ -7,11 +7,6 @@
   gather_facts: false
   become: true
   tasks:
-    #- name: ensure persistent root exists
-    #  file:
-    #    state: directory
-    #    path: "{{ persistent_root }}"
-
     - name: create persistent subdirectories
       file:
         path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/systemd/system/netboot-persistent.target.wants"
