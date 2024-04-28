@@ -1,0 +1,80 @@
+# Create host specific udev rules for network interface naming.  Generally this
+# comes from the inventory host variable `net_dev`, which should be a dictionary
+# whose keys are the desired interface names and whose values are a udev
+# matching rule.  An example would be:
+#
+#     net_udev:
+#       eth4: 'KERNELS=="0000:81:00.0", ATTR{dev_port}=="0"'
+#       eth5: 'KERNELS=="0000:81:00.0", ATTR{dev_port}=="1"'
+#
+---
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  tasks:
+    - name: create rules.d directories for netboot hosts
+      file:
+        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/udev/rules.d"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        state: directory
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: create net_udev files for netboot hosts
+      copy:
+        content: |
+          SUBSYSTEM=="net", ACTION=="add", {{ match }}, NAME="{{ iface }}"
+        dest: "{{ persistent_root }}/{{ hostvars[host].canonical_name }}/etc/udev/rules.d/60-persistent-network-{{ item.iface }}.rules"
+      vars:
+        host: "{{ item.host }}"
+        iface: "{{ item.iface }}"
+        match: "{{ item.match }}"
+      loop: >
+        [
+          {% for host in groups.netboot_nodes if "net_udev" in hostvars[host] %}
+          {% for iface in hostvars[host].net_udev.keys() %}
+          {
+            "host": "{{ host }}",
+            "iface": "{{ iface }}",
+            "match": "{{ hostvars[host].net_udev[iface].replace('"','\"') }}"
+          },
+          {% endfor %}
+          {% endfor %}
+        ]
+      loop_control:
+        label: "{{ item.host }}:{{ item.iface }}"
+
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: create dummy rules.d in netboot root /persistent
+      file:
+        path: /persistent/etc/udev/rules.d
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        state: directory
+
+    # If /etc/udev.d is a symlink, this find command will return 0 lines.
+    # If /etc/udev.d is a directory, this find command will return 1 line if it
+    # is empty or >1 if it is not empty.
+    - name: check for file in existing rules.d directory
+      command: find /etc/udev/rules.d ! -type l
+      register: find_results
+
+    - name: fail if rules.d directory is not empty
+      fail:
+        msg: "{{ netboot_root }}/etc/udev/rules.d is not empty"
+      when: find_results.stdout_lines|length > 1
+
+    - name: delete existing (and empty) rules.d directory
+      command: rmdir /etc/udev/rules.d
+      when: find_results.stdout_lines|length == 1
+
+    - name: make netboot root rules.d be a symlink
+      file:
+        state: link
+        path: /etc/udev/rules.d
+        src: ../../persistent/etc/udev/rules.d
