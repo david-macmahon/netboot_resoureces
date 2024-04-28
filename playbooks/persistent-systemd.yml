@@ -51,16 +51,6 @@
         state: directory
       loop: "{{ groups.netboot_nodes }}"
 
-    # Ensure the functional name symlinks exist (possibly being a bit too
-    # paranoid here as this is handled by persistent.dirs.yml playbook)
-    - name: create /srv/persistent symlinks
-      file:
-        state: link
-        path: "{{ persistent_root }}/{{ item }}"
-        src: "{{ hostvars[item].canonical_name }}"
-        force: "{{ ansible_check_mode }}"
-      loop: "{{ groups.netboot_nodes }}"
-
 - hosts: netboot_root
   gather_facts: false
   become: true
