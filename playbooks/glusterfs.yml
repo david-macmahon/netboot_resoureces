@@ -34,13 +34,13 @@
         line: "WantedBy=netboot-persistent.target"
         regexp: "^WantedBy="
 
-    - name: install /etc/tmpfiles.d/glusterd.conf
+    - name: install /etc/tmpfiles.d/netboot-glusterd.conf
       copy:
-        src: files/netboot/etc/tmpfiles.d/glusterd.conf
+        src: files/netboot/etc/tmpfiles.d/netboot-glusterd.conf
         dest: /etc/tmpfiles.d
         owner: root
         group: root
         mode: '0644'
 
     - name: run systemd-tmpfiles
-      command: systemd-tmpfiles --create /etc/tmpfiles.d/glusterd.conf
+      command: systemd-tmpfiles --create /etc/tmpfiles.d/netboot-glusterd.conf
