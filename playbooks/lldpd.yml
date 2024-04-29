@@ -1,0 +1,10 @@
+# Install `lldpd` package in netboot root.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install lldpd package
+      apt:
+        name: lldpd
+        state: present
