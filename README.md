@@ -32,7 +32,7 @@ shown here with their default values, before running `netbootstrap.sh`:
   the default of `amd64` is used.
 
   ```sh
-  CODENAME="jammy"
+  CODENAME="noble"
   ARCH="amd64"
   ```
 
@@ -72,9 +72,9 @@ Read on for details of what the script does.
    appropriately.  This is to support the manual creation of netboot root
    filesystems for releases that are newer than the host OS's debootstrap
    program will natively support.  For examples, Ubuntu 16.04 cannot
-   `debootstrap` an Ubuntu 22.04 "jammy" root file system so it must be
+   `debootstrap` an Ubuntu 24.04 "noble" root file system so it must be
    pre-created externally, e.g. by manually using `debootstrap` to create a new
-   enonugh root filesystem that can `debootstrap` "jammy".
+   enonugh root filesystem that can `debootstrap` "noble".
 
 2. Make the rootfs chroot-able
 
