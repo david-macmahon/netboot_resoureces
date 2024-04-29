@@ -57,9 +57,9 @@
         mode: "0755"
         state: directory
 
-    # If /etc/udev.d is a symlink, this find command will return 0 lines.
-    # If /etc/udev.d is a directory, this find command will return 1 line if it
-    # is empty or >1 if it is not empty.
+    # If /etc/udev/rules.d is a symlink, this find command will return 0 lines.
+    # If /etc/udev/rules.d is a directory, this find command will return 1 line
+    # if it is empty or >1 lines if it is not empty.
     - name: check for file in existing rules.d directory
       command: find /etc/udev/rules.d ! -type l
       register: find_results
