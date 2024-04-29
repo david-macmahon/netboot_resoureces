@@ -1,0 +1,10 @@
+# Install `autofs` package in netboot root.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install autofs package
+      apt:
+        name: autofs
+        state: present
