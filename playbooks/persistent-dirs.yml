@@ -9,7 +9,7 @@
   tasks:
     - name: create persistent subdirectories
       file:
-        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/systemd/system/netboot-persistent.target.wants"
+        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}"
         owner: "root"
         group: "root"
         mode: "0755"

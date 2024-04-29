@@ -1,15 +1,22 @@
-# Ansible playbook to create the directory
-# `etc/systemd/system/netboot-persistent.target.wants` in each host specific
-# directory in persistent_root.
+# Ansible playbook to create the `netboot-persistent.target` file and the
+# `multi-user.target.wants/netboot-persistent.target` symlink that points to
+# it in the netboot root file system's /etc/systemd/system` directory.
 #
-# This also creates the `/etc/systemd/system/netboot-persistent.target`
-# file in the netboot root file system as well as the symlink
-# `/etc/systemd/system/netboot-persistent.target.wants` that points to
-# `../../../persistent/etc/systemd/system/netboot-persistent.target.wants` and
-# the `/etc/systemd/system/multi-user.target.wants/netboot-persistent.target`
-# symlink that points to `../netboot-persistent.target`.
+# It also installs a config file in the netboot root's `/etc/tmpfiles.d`
+# directory.  This config file has two purposes:
 #
-# The end result (with items managed by this script marked by `!`) is:
+# 1. To ensure that the `netboot-persistent.target.wants` directory exists in
+#    the netboot host's `/persistent/etc/systemd/system` directory at boot
+#    time.
+# 2. To create a `netboot-persistent.target.wants` symlink in the netboot
+#    root's `/etc/systemd/system` directory pointing to 
+#    `../../../persistent/etc/systemd/system/netboot-persistent.target.wants`
+#
+# This config file is executed as part of the playbook so ensure that the
+# symlink in `/etc/...` will already exist when the config file is run on the
+# netboot hosts at boot time.
+#
+# The end result is:
 #
 # $netboot_root/
 # |-- etc/
@@ -23,42 +30,36 @@
 #     `-- etc/
 #         `-- systemd/
 #             `-- system/
-#                 `-- !netboot-persistent.target.wants/
+#                 `-- *netboot-persistent.target.wants/
 #
-# $persistent_root/
-# |-- $hostname/
-# |   `-- persistent/
-# |       `-- etc/
-# |           `-- systemd/
-# |               `-- system/
-# |                   `-- !netboot-persistent.target.wants/
-# ...
+# On the netboot hosts, the result will be:
+#
+# /persistent/
+# `-- etc/
+#     `-- systemd/
+#         `-- system/
+#             `-- *netboot-persistent.target.wants/
+#
+# - Items marked by `!` are created by this playbook.
+# - Items marked by `*` are created by systemd-tmpfiles
 #
 # This allows services to be enabled on a per-host basis by creating a symlink
 # in the hosts' /persistent/etc/systemd/system/netboot-persistent.target.wants
 # directory.
 ---
-- hosts: head_nodes
-  gather_facts: false
-  become: true
-  tasks:
-    - name: create persistent subdirectories
-      file:
-        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/systemd/system/netboot-persistent.target.wants"
-        owner: "root"
-        group: "root"
-        mode: "0755"
-        state: directory
-      loop: "{{ groups.netboot_nodes }}"
-
 - hosts: netboot_root
   gather_facts: false
   become: true
   tasks:
-    - name: copy netboot-persistent.target
+    - name: create netboot-persistent.target
       copy:
-        src: files/headnode/etc/systemd/system/netboot-persistent.target
-        dest: /etc/systemd/system
+        content: |
+          [Unit]
+          Description=Netboot persistent target
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/netboot-persistent.target
         owner: root
         group: root
         mode: '0644'
@@ -69,16 +70,13 @@
         path: /etc/systemd/system/multi-user.target.wants/netboot-persistent.target
         src: ../netboot-persistent.target
 
-    - name: create dummy netboot-persistent.wants in netboot root /persistent
-      file:
-        path: /persistent/etc/systemd/system/netboot-persistent.target.wants
-        owner: "root"
-        group: "root"
-        mode: "0755"
-        state: directory
+    - name: install /etc/tmpfiles.d/netboot-systemd.conf
+      copy:
+        src: files/netboot/etc/tmpfiles.d/netboot-systemd.conf
+        dest: /etc/tmpfiles.d
+        owner: root
+        group: root
+        mode: '0644'
 
-    - name: create netboot-persistent.wants symlink
-      file:
-        state: link
-        path: /etc/systemd/system/netboot-persistent.target.wants
-        src: ../../../persistent/etc/systemd/system/netboot-persistent.target.wants
+    - name: run systemd-tmpfiles
+      command: systemd-tmpfiles --create /etc/tmpfiles.d/netboot-systemd.conf
