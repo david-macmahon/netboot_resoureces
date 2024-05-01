@@ -89,12 +89,11 @@
 # This will run `debootstrap` to create the base root filesystem if the
 # destination does not exist.  If the destination does exist, then it will skip
 # the `debootstrap` step and assume that it was already initialized
-# appropriately.  This is to support the manual creation of netboot root
-# filesystems for releases that are newer than the host OS's debootstrap
-# program will natively support.  For examples, Ubuntu 16.04 cannot
-# `debootstrap` an Ubuntu 24.04 "noble" root file system so it must be
-# pre-created externally, e.g. by manually using `debootstrap` to create a new
-# enonugh root filesystem that can `debootstrap` "noble".
+# appropriately.  This is to support the manual creation of the netboot root
+# filesystem if desired.  Note that `netbootstrap.sh` downloads a modern
+# version of `debootstrap` to avoid problems such as an old `debootstrap`
+# version not knowing about newer OS releases, so manual creation should rarely
+# be necessary.
 #
 # 2. Make the rootfs chroot-able
 #
@@ -205,6 +204,11 @@ SRV_ROOT="${SRV_ROOT:-/srv}"
 # Where to install files for TFTP
 TFTPBOOT_DIR="${TFTPBOOT_DIR:-${SRV_ROOT}/tftpboot}"
 
+# Which version of debootstrap to download
+DEBOOTSTRAP_VERSION="${DEBOOTSTRAP_VERSION:-1.0.134ubuntu1_all}" # Ubuntu 24.04
+# Where to download debootstrap package from
+DEBOOTSTRAP_URL="${DEBOOTSTRAP_URL:-http://mirrors.kernel.org/ubuntu/pool/main/d/debootstrap/debootstrap_${DEBOOTSTRAP_VERSION}.deb}"
+
 # The variables below here are not typically overridden
 
 NETBOOT_ROOT="${SRV_ROOT}/${CODENAME}/rootfs.${ARCH}"
@@ -240,8 +244,41 @@ NFS_SUBNET="$2"
 # Run debootstrap (or not)
 if ! [ -e "${NETBOOT_ROOT}" ]
 then
+    # Ensure that zstd is available (required by recent debootstrap versions)
+    if ! dpkg -l zstd >& /dev/null
+    then
+        echo "${NETBOOT_ROOT} does not exist " \
+             "but zstd package is not installed, cannot continue"
+        exit 1
+    fi
+
     echo "${NETBOOT_ROOT} does not exist, debootstrap ${CODENAME} into ${NETBOOT_ROOT}"
-    debootstrap --variant=buildd ${CODENAME} ${NETBOOT_ROOT} http://archive.ubuntu.com/ubuntu
+
+    # Run in a sub-shell to avoid needing to cd back
+    (
+        # Mount a new tmpfs file system to avoid any `noexec` flag on /tmp
+        mkdir -p "${TMPDIR:-/tmp}/debootstrap.$$"
+        mount -t tmpfs tmpfs "${TMPDIR:-/tmp}/debootstrap.$$"
+        cd "${TMPDIR:-/tmp}/debootstrap.$$"
+
+        # Download and extract debootstrap .deb file
+        wget -O debootstrap.deb "${DEBOOTSTRAP_URL}"
+        dpkg -x debootstrap.deb debootstrap
+
+        # Add modern ubuntu key to apt
+        apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 \
+                    --recv-keys 871920D1991BC93C
+
+        # Run debootstrap
+        env DEBOOTSTRAP_DIR=`pwd`/debootstrap/usr/share/debootstrap \
+            ./debootstrap/usr/sbin/debootstrap \
+            --keyring=/etc/apt/trusted.gpg --variant=buildd \
+            ${CODENAME} ${NETBOOT_ROOT} http://archive.ubuntu.com/ubuntu
+
+        # Clean up
+        cd "${TMPDIR:-/tmp}"
+        umount debootstrap.$$
+    )
 else
     echo "${NETBOOT_ROOT} exists, skipping debootstrap step"
 fi

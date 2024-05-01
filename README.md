@@ -67,14 +67,13 @@ Read on for details of what the script does.
 1. Use `debootstrap` to create a minimalistic root filesystem (rootfs)
 
    This will run `debootstrap` to create the base root filesystem if the
-   destination does not exist.  If the destination does exist, then it will skip
-   the `debootstrap` step and assume that it was already initialized
-   appropriately.  This is to support the manual creation of netboot root
-   filesystems for releases that are newer than the host OS's debootstrap
-   program will natively support.  For examples, Ubuntu 16.04 cannot
-   `debootstrap` an Ubuntu 24.04 "noble" root file system so it must be
-   pre-created externally, e.g. by manually using `debootstrap` to create a new
-   enonugh root filesystem that can `debootstrap` "noble".
+   destination does not exist.  If the destination does exist, then it will
+   skip the `debootstrap` step and assume that it was already initialized
+   appropriately.  This is to support the manual creation of the netboot root
+   filesystem if desired.  Note that `netbootstrap.sh` downloads a modern
+   version of `debootstrap` to avoid problems such as an old `debootstrap`
+   version not knowing about newer OS releases, so manual creation should
+   rarely be necessary.
 
 2. Make the rootfs chroot-able
 
