@@ -34,7 +34,13 @@ fi
 touch .gitignore
 for f in /venv/ /activate
 do
-    grep -q "^$f\\$" .gitignore || echo "$f" >> .gitignore
+    if ! grep -q "^$f\$" .gitignore
+    then
+        echo "adding '$f' to .gitignore"
+        echo "$f" >> .gitignore
+    else
+        echo "'$f' is already in .gitignore"
+    fi
 done
 
 # Activate virtual env and install ansible
