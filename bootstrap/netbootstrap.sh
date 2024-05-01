@@ -218,7 +218,7 @@ EXPORT_OPTS="rw,no_root_squash,no_subtree_check"
 NBROOT_FILES="$(dirname $0)/../netboot_root_files"
 
 # Generate timestamp for various uses (e.g. names of backup files)
-TS="$(date +%Y$m$d%H%M%S)"
+TS="$(date +%Y%m%d%H%M%S)"
 
 # Change to other filename when testing fstab and exports updates
 FSTAB=/etc/fstab
