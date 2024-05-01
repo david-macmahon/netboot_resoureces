@@ -316,6 +316,9 @@ else
     chroot "${NETBOOT_ROOT}" apt remove -y --purge --autoremove landscape-common ubuntu-release-upgrader-core update-notifier-common
     chroot "${NETBOOT_ROOT}" rm -rf /var/lib/update-notifier /etc/hostname
     set +x
+
+    # Set the SUID sticky bit on ping and fping since they run from NFS mount
+    chmod 4755 /bin/ping /usr/bin/fping
 fi
 
 # 4. Add some `tmpfiles.d` files to rootfs `/etc/tmpfiles.d`.
