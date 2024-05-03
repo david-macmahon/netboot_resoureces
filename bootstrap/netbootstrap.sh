@@ -358,10 +358,14 @@ else
     chmod 4755 /bin/ping /usr/bin/fping
 fi
 
-# 4. Add some `tmpfiles.d` files to rootfs `/etc/tmpfiles.d`.
+# 4. Add `defatul` and `tmpfiles.d` files to rootfs `/etc/default` and
+# `/etc/tmpfiles.d`.
 
-echo "copying files from ${NBROOT_FILES}/etc/tmpfiles.d to ${NETBOOT_ROOT}/etc"
-cp -rv "${NBROOT_FILES}/etc/tmpfiles.d" "${NETBOOT_ROOT}/etc"
+for d in default tmpfiles.d
+do
+    echo "copying files from ${NBROOT_FILES}/etc/$d to ${NETBOOT_ROOT}/etc"
+    cp -rv "${NBROOT_FILES}/etc/$d" "${NETBOOT_ROOT}/etc"
+done
 
 # 5. Run `systemd-tmpfiles --create` in the rootfs for the new `tmpfiles.d`
 #    files.
