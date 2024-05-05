@@ -9,7 +9,14 @@
   become: true
   vars:
     ipmi_suffux: "{{ ipmi_suffix|default('x', true) }}"
+    # Override on command line with "-e 'config_headnode=true'"
+    config_headnode: false
   tasks:
+    - name: Safety check that config_headnode is true
+      fail:
+        msg: "this playbook modifies the head node so you must pass `-e config_headnode=true`"
+      when: config_headnode is false
+
     - name: Purge ethers file of IPMI MACs
       lineinfile:
         path: /etc/ethers
