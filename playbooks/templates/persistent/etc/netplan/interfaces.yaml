@@ -1,13 +1,17 @@
 network:
   version: 2
   ethernets:
-{% for iface, config in item.value | dictsort %}
+{% for iface, config in net_ifaces | dictsort if config.addresses is defined %}
     {{ iface }}:
       addresses:
         {% for addr in config.addresses -%}
         - "{{ addr }}" 
         {%- endfor +%}
-      {{ "macaddress: \"" + config.macaddress + "\"" if config.macaddress }}
-      {{ "mtu: " + config.mtu|string if config.mtu }}
+{% if config.macaddress is defined %}
+      macaddress: "{{ config.macaddress }}"
+{% endif %}
+{% if config.mtu is defined %}
+      mtu: {{ config.mtu|string }}
+{% endif %}
       optional: true
 {% endfor %}

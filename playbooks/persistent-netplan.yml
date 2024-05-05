@@ -8,18 +8,21 @@
     - name: ensure persistent netplan directories exists
       file:
         state: directory
-        path: "{{ persistent_root }}/{{ item }}/etc/netplan"
-      loop: "{{ net_ifaces.keys() }}"
-      when: item in groups.netboot_nodes
+        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/netplan"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+      loop: "{{ groups.netboot_nodes }}"
 
     - name: create netplan files
       template:
         src: persistent/etc/netplan/interfaces.yaml
-        dest: "{{ persistent_root }}/{{ item.key }}/etc/netplan/interfaces.yaml"
+        dest: "{{ persistent_root }}/{{ item }}/etc/netplan/interfaces.yaml"
         owner: root
         group: root
         mode: '0644'
-      loop: "{{ net_ifaces | dict2items }}"
+      vars:
+        net_ifaces: "{{ hostvars[item].net_ifaces }}"
+      loop: "{{ groups.netboot_nodes }}"
       loop_control:
-        label: "{{ item.key }}"
-      when: item.key in groups.netboot_nodes
+        label: "{{ item }}"
