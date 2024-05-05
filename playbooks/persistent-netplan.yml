@@ -14,8 +14,8 @@
 
     - name: create netplan files
       template:
-        src: persistent/etc/netplan/net_ifaces.yaml
-        dest: "{{ persistent_root }}/{{ item.key }}/etc/netplan/net_ifaces.yaml"
+        src: persistent/etc/netplan/interfaces.yaml
+        dest: "{{ persistent_root }}/{{ item.key }}/etc/netplan/interfaces.yaml"
         owner: root
         group: root
         mode: '0644'
