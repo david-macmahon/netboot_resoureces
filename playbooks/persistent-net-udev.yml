@@ -1,12 +1,12 @@
-# Create host specific udev rules for network interface naming.  Generally this
-# comes from the inventory host variable `net_dev`, which should be a dictionary
-# whose keys are the desired interface names and whose values are a udev
-# matching rule.  An example would be:
+# Create host specific udev rules for network interface naming.  This info
+# comes from the inventory host variable `net_iface` which should be a
+# dictionary whose keys are the desired interface names and whose values are
+# also dictionaries.  If the interface name dictionary has a `udev` key, the
+# string value will be included in a 60-persistent-network.rules file in the
+# corresponding host's /persistent/etc/udev/rules.d directory.
 #
-#     net_udev:
-#       eth4: 'KERNELS=="0000:81:00.0", ATTR{dev_port}=="0"'
-#       eth5: 'KERNELS=="0000:81:00.0", ATTR{dev_port}=="1"'
-#
+# If an interface does not have a `udev` key no udev rules file will be created
+# for that interface and any existing udev rules file will be left unmodified.
 ---
 - hosts: head_nodes
   gather_facts: false
@@ -21,7 +21,7 @@
         state: directory
       loop: "{{ groups.netboot_nodes }}"
 
-    - name: create net_udev files for netboot hosts
+    - name: create 60-persistent-network.rules files for netboot hosts
       copy:
         content: |
           SUBSYSTEM=="net", ACTION=="add", {{ match }}, NAME="{{ iface }}"
@@ -29,52 +29,19 @@
       vars:
         host: "{{ item.host }}"
         iface: "{{ item.iface }}"
-        match: "{{ item.match }}"
+        match: '{{ item.match }}'
       loop: >
         [
-          {% for host in groups.netboot_nodes if "net_udev" in hostvars[host] %}
-          {% for iface in hostvars[host].net_udev.keys() %}
-          {
-            "host": "{{ host }}",
-            "iface": "{{ iface }}",
-            "match": "{{ hostvars[host].net_udev[iface].replace('"','\"') }}"
-          },
-          {% endfor %}
+          {% for host in groups.netboot_nodes if hostvars[host].net_ifaces is defined %}
+          {%   for iface in hostvars[host].net_ifaces if hostvars[host].net_ifaces[iface].udev is defined %}
+          {%     set match = hostvars[host].net_ifaces[iface].udev %}
+                 {
+                   "host": "{{ host }}",
+                   "iface": "{{ iface }}",
+                   "match": '{{ match }}'
+                 },
+          {%   endfor %}
           {% endfor %}
         ]
       loop_control:
-        label: "{{ item.host }}:{{ item.iface }}"
-
-- hosts: netboot_root
-  gather_facts: false
-  become: true
-  tasks:
-    - name: create dummy rules.d in netboot root /persistent
-      file:
-        path: /persistent/etc/udev/rules.d
-        owner: "root"
-        group: "root"
-        mode: "0755"
-        state: directory
-
-    # If /etc/udev/rules.d is a symlink, this find command will return 0 lines.
-    # If /etc/udev/rules.d is a directory, this find command will return 1 line
-    # if it is empty or >1 lines if it is not empty.
-    - name: check for file in existing rules.d directory
-      command: find /etc/udev/rules.d ! -type l
-      register: find_results
-
-    - name: fail if rules.d directory is not empty
-      fail:
-        msg: "{{ netboot_root }}/etc/udev/rules.d is not empty"
-      when: find_results.stdout_lines|length > 1
-
-    - name: delete existing (and empty) rules.d directory
-      command: rmdir /etc/udev/rules.d
-      when: find_results.stdout_lines|length == 1
-
-    - name: make netboot root rules.d be a symlink
-      file:
-        state: link
-        path: /etc/udev/rules.d
-        src: ../../persistent/etc/udev/rules.d
+        label: "{{ host }}:{{ iface }}"
