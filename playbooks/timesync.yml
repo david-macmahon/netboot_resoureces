@@ -30,8 +30,7 @@
       systemd:
         name: ntp.service
         state: restarted
-      when: "not ansible_check_mode"
-      when: config_headnode
+      when: config_headnode and "not ansible_check_mode"
 
 - hosts: netboot_root
   gather_facts: false
