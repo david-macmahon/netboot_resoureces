@@ -1,7 +1,7 @@
 # Ansible playbook to install Mellanox OFED drivers on netboot nodes.
 ---
 - hosts: netboot_root
-  gather_facts: false
+  gather_facts: true
   become: true
   vars:
     mellanox_dist: /opt/mellanox/downloads
@@ -12,6 +12,11 @@
     oefd_version: 5.8-1.0.1.1 # ConnectX-4 and above support
     oefd_md5: 4e08bfed9b3ffb7f0b6337f966915880
   tasks:
+    - name: do not install on modern Ubuntu releases
+      fail:
+        msg: "OFED is already included on {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int > 22
+
     - name: install prerequisite packages to netboot root
       apt:
         name:
