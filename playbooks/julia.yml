@@ -12,6 +12,11 @@
     #julia_checksum: 'sha256:6c4522d595e4cbcd00157ac458a72f8aec01757053d2073f99daa39e442b2a36'
     julia_base: /opt/julia
   tasks:
+    - name: ensure julia_base is an absolute path
+      fail:
+        msg: "julia_base ({{ julia_base }}) is not an absolute path"
+      when: julia_base[0] != '/'
+
     - name: make directory for julia distribution download
       file:
         path: "{{ julia_base }}/download"
@@ -36,7 +41,7 @@
     - name: create julia symlink in /usr/local/bin
       file:
         state: link
-        src: "{{ julia_base }}/julia-{{ julia_version }}/bin/julia"
+        src: "../../..{{ julia_base }}/julia-{{julia_version}}/bin/julia"
         path: "/usr/local/bin/{{ item }}"
         force: "{{ ansible_check_mode }}"
       loop:
