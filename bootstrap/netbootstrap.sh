@@ -530,7 +530,6 @@ else
 
     mkdir -p "$(dirname "${defaultfile}")"
 
-    prettyname="$(sed -n '/PRETTY_NAME=/{s/^.*=//;s/"//g;p}' "${NETBOOT_ROOT}/etc/os-release")"
     cat > "${defaultfile}" <<EOF
 UI menu.c32
 MENU TITLE ${NETBOOT_ORGNAME:-Super Amazing} PXE Boot Menu
