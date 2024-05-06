@@ -1,0 +1,5 @@
+# NFS exports file
+{% for key, export in netboot_exports|dictsort if key in exports %}
+{{ export.directory }} \
+    {{ export.clients|join(" \\\n    ") }}
+{% endfor %}

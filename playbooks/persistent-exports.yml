@@ -1,0 +1,36 @@
+# Ansible playbook to setup /persistent/etc/exports for each host with
+# `exports` defined.
+---
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  tasks:
+    - name: create exports files
+      template:
+        src: persistent/etc/exports
+        dest: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/exports"
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        exports: "{{ hostvars[item].exports }}"
+        netboot_exports: "{{ hostvars[item].netboot_exports|default({}) }}"
+      loop: "{{ groups.netboot_nodes }}"
+      loop_control:
+        label: "{{ item }}"
+      when: hostvars[item].exports is defined and hostvars[item].exports
+
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install /etc/tmpfiles.d/netboot-exports.conf
+      copy:
+        src: files/netboot/etc/tmpfiles.d/netboot-exports.conf
+        dest: /etc/tmpfiles.d
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: run systemd-tmpfiles
+      command: systemd-tmpfiles --create /etc/tmpfiles.d/netboot-exports.conf
