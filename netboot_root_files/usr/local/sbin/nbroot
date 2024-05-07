@@ -16,4 +16,4 @@ SRVROOT="${SRVROOT:-${3:-/srv}}"
 # Ensure SRVROOT starts with a "/"
 SRVROOT="/${SRVROOT#/}"
 
-chroot "${SRVROOT}/${CODENAME}/rootfs.${ARCH}"
+debian_chroot="${CODENAME} netboot" chroot "${SRVROOT}/${CODENAME}/rootfs.${ARCH}" "${@}"
