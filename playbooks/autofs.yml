@@ -15,6 +15,12 @@
         regexp: "^#?OPTIONS="
         line: "OPTIONS=\"--timeout 900\""
 
+    - name: add /persistent/etc/auto.master.d to /etc/auto.master
+      lineinfile:
+        path: /etc/auto.master
+        line: "+dir:/persistent/etc/auto.master.d"
+        insertbefore: "^\\+dir:/etc/auto.master.d$"
+
     - name: setup netboot /etc/auto.master.d/mnt.autofs
       copy:
         dest: /etc/auto.master.d/mnt.autofs
