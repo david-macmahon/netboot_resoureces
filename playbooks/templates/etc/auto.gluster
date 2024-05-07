@@ -1,0 +1,6 @@
+{% for host in groups.netboot_nodes if hostvars[host].gluster_volumes is defined %}
+{% for volume in hostvars[host].gluster_volumes if volume.name is defined %}
+{% set mount_name = hostvars[host].mount_name|default(host) %}
+{{ volume.name }}  -fstype=glusterfs  / {{ mount_name }}:{{ volume.directory|default('/'+volume.name) }}
+{% endfor %}
+{% endfor %}
