@@ -8,3 +8,35 @@
       apt:
         name: autofs
         state: present
+
+    - name: set netboot /etc/default/autofs OPTIONS=...
+      lineinfile:
+        path: /etc/default/autofs
+        regexp: "^#?OPTIONS="
+        line: "OPTIONS=\"--timeout 900\""
+
+    - name: setup netboot /etc/auto.master.d/mnt.autofs
+      copy:
+        dest: /etc/auto.master.d/mnt.autofs
+        content: |
+          /mnt multi:/etc/auto.mnt browse,ro,sync,no_subtree_check,no_root_squash,nfsvers=3
+
+    - name: setup netboot /etc/auto.mnt
+      template:
+        src: etc/auto.mnt
+        dest: /etc/auto.mnt
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: create symlinks for legacy names for convenience
+      file:
+        path: "/mnt_{{ item }}"
+        src: "/mnt/{{ item }}"
+        state: link
+        force: true
+        follow: false
+      loop: "{{ groups.netboot_nodes }}"
+      loop_control:
+        label: "/mnt_{{ item }}"
+      when: hostvars[item].exports is defined

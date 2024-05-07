@@ -1,0 +1,9 @@
+{% for host in groups.netboot_nodes if hostvars[host].exports is defined %}
+{{ host }} \
+{% for key in hostvars[host].exports if key in netboot_exports %}
+{% set dir = netboot_exports[key].directory %}
+{% set mount_name = hostvars[host].mount_name|default(host) %}
+    {{ dir }} {{ mount_name }}:{{ dir }} {{ loop.last|ternary('', ' \\') }}
+{% endfor %}
+
+{% endfor %}
