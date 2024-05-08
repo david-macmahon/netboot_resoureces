@@ -1,0 +1,32 @@
+# Install `prometheus-node-exporter` packages in netboot root.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: install prometheus-node-exporter packages
+      apt:
+        name:
+          - prometheus-node-exporter
+          - prometheus-node-exporter-collectors
+        state: present
+
+    - name: disable some prometheus-node-exporter-collectors
+      systemd:
+        name: "{{ item }}"
+        enabled: false
+      loop:
+        - prometheus-node-exporter-apt.timer
+        - prometheus-node-exporter-mellanox-hca-temp.timer
+        - prometheus-node-exporter-nvme.timer
+
+    - name: install /etc/tmpfiles.d/netboot-prometheus-node-exporter.conf
+      copy:
+        src: files/netboot/etc/tmpfiles.d/netboot-prometheus-node-exporter.conf
+        dest: /etc/tmpfiles.d
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: run systemd-tmpfiles
+      command: systemd-tmpfiles --create /etc/tmpfiles.d/netboot-prometheus-node-exporter.conf
