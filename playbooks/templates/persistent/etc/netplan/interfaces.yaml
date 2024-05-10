@@ -4,9 +4,9 @@ network:
 {% for iface, config in net_ifaces | dictsort if config.addresses is defined %}
     {{ iface }}:
       addresses:
-        {% for addr in config.addresses -%}
+{% for addr in config.addresses %}
         - "{{ addr }}" 
-        {%- endfor +%}
+{% endfor %}
 {% if config.macaddress is defined %}
       macaddress: "{{ config.macaddress }}"
 {% endif %}
