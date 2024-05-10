@@ -20,7 +20,7 @@
         state: present
       when: config_headnode
 
-    - name: template conf files to /etc/rsyslog.d
+    - name: template conf files to /etc/ntp.d
       template:
         src: 'files/headnode/etc/ntp.conf'
         dest: '/etc/ntp.conf'
@@ -36,6 +36,14 @@
   gather_facts: false
   become: true
   tasks:
+    - name: setup /etc/localtime on netboot root
+      file:
+        state: link
+        src: "/usr/share/zoneinfo/{{ zoneinfo }}"
+        path: "/etc/localtime"
+        force: true
+      when: zoneinfo is defined
+
     - name: ensure systemd-timesyncd package is installed
       apt:
         name: systemd-timesyncd
