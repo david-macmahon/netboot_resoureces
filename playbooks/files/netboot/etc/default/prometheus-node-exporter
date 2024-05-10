@@ -1,0 +1,8 @@
+# Set the command-line arguments to pass to the server.
+# Due to shell escaping, to pass backslashes for regexes, you need to double
+# them (\\d for \d). If running under systemd, you need to double them again
+# (\\\\d to mean \d), and escape newlines too.
+ARGS='
+--collector.ethtool
+--collector.filesystem.mount-points-exclude="^/(dev|proc|run|sys|mnt|media|gluster|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)"
+'

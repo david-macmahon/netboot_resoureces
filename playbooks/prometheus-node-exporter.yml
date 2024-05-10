@@ -20,6 +20,14 @@
         - prometheus-node-exporter-mellanox-hca-temp.timer
         - prometheus-node-exporter-nvme.timer
 
+    - name: install /etc/default/prometheus-node-exporter
+      copy:
+        src: files/netboot/etc/default/prometheus-node-exporter
+        dest: /etc/default/prometheus-node-exporter
+        owner: root
+        group: root
+        mode: '0644'
+
     - name: install /etc/tmpfiles.d/netboot-prometheus-node-exporter.conf
       copy:
         src: files/netboot/etc/tmpfiles.d/netboot-prometheus-node-exporter.conf
