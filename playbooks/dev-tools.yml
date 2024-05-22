@@ -15,6 +15,8 @@
           # basics
           - gcc
           - gcc-doc
+          - gdb
+          - gdb-doc
           - make
           - make-doc
           # autotools
