@@ -1,4 +1,4 @@
-{% for host in groups.netboot_nodes if hostvars[host].exports is defined %}
+{% for host in groups.netboot_nodes if hostvars[host].exports is defined and hostvars[host].exports|length > 0 %}
 {{ host }} \
 {% for key in hostvars[host].exports if key in netboot_exports %}
 {% set dir = netboot_exports[key].directory %}
