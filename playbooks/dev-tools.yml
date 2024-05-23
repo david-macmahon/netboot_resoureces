@@ -32,6 +32,7 @@
           - ninja-build
           - meson
           # HDF5
+          - hdf5-tools
           - libhdf5-dev
           - bitshuffle
           # Capnp
