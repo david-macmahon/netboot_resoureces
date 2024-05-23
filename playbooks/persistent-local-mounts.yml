@@ -1,0 +1,71 @@
+# Ansible playbook to create netboot_root files and netboot_persistent symlinks
+# to support local mounts on the netboot nodes.
+---
+- hosts: netboot_root
+  gather_facts: false
+  become: true
+  tasks:
+    - name: create mount points for local mounts
+      file:
+        path: "{{ mountpoint }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0644
+      vars:
+        label: "{{ item.value.label|default(item.key) }}"
+        mountpoint: "{{ item.value.mountpoint|default('/'+label) }}"
+      loop: "{{ all_local_mounts|default({})|dict2items }}"
+      loop_control:
+        label: "{{ label }}"
+
+    - name: install unit files for local mounts
+      template:
+        src: etc/systemd/system/mountbylabel.mount
+        dest: "/etc/systemd/system/{{ label }}.mount"
+        owner: root
+        group: root
+        mode: 0644
+      vars:
+        label: "{{ item.value.label|default(item.key) }}"
+        mountpoint: "{{ item.value.mountpoint|default('/'+label) }}"
+      loop: "{{ all_local_mounts|default({})|dict2items }}"
+      loop_control:
+        label: "{{ label }}"
+
+# Create symlinks in /persistent for local mounts (if any)
+- hosts: head_nodes
+  gather_facts: false
+  become: true
+  tasks:
+    - name: create persistent netboot-persistent.target.wants directories for netboot hosts
+      file:
+        path: "{{ persistent_root }}/{{ hostvars[item].canonical_name }}/etc/systemd/system/netboot-persistent.target.wants"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        state: directory
+      loop: "{{ groups.netboot_nodes }}"
+
+    - name: enable local mount unit files for netboot nodes
+      file:
+        state: link
+        force: true
+        path: "{{ persistent_root }}/{{ hostvars[host].canonical_name }}/etc/systemd/system/netboot-persistent.target.wants/{{ label }}.mount"
+        src: "../../../../../etc/systemd/system/{{ label }}.mount"
+      vars:
+        host: "{{ item.host }}"
+        label: "{{ item.label }}"
+      loop: >
+        [
+          {% for host in groups.netboot_nodes if hostvars[host].local_mounts is defined %}
+          {%   for key in hostvars[host].local_mounts %}
+                 {
+                   "host": "{{ host }}",
+                   "label": "{{ hostvars[host].local_mounts[key].label|default(key) }}"
+                 },
+          {%   endfor %}
+          {% endfor %}
+        ]
+      loop_control:
+        label: "{{ host }}:{{ label }}"

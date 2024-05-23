@@ -1,0 +1,11 @@
+[Unit]
+Description={{ mountpoint }} mount details
+
+[Mount]
+What=/dev/disk/by-label/{{ label }}
+Where={{ mountpoint }}
+Options=noatime,nodiratime
+TimeoutSec=10
+
+[Install]
+WantedBy=netboot-persistent.target
