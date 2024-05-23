@@ -41,3 +41,5 @@
           - gfortran
           - libcfitsio-dev
           - libgsl-dev
+          # Network testing
+          - iperf
