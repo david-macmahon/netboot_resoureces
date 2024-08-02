@@ -25,7 +25,7 @@
       copy:
         dest: /etc/auto.master.d/mnt.autofs
         content: |
-          /mnt multi:/etc/auto.mnt browse,ro,sync,no_subtree_check,no_root_squash,nfsvers=3
+          /mnt multi:/etc/auto.mnt browse,ro,sync,no_subtree_check,no_root_squash
 
     - name: setup netboot /etc/auto.mnt
       template:
