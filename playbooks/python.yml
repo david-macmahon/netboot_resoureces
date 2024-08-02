@@ -21,7 +21,10 @@
         state: present
       when: install_python2 and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int <= 22
 
-    - name: install python-is-python3
+    - name: install python3-pip and python-is-python3
       apt:
-        name: python-is-python3
+        name:
+          - python3-pip
+          - python3-venv
+          - python-is-python3
         state: present
