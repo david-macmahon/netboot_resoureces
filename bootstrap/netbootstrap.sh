@@ -348,7 +348,7 @@ else
     # === Install additional packages (if not already installed) ===
     chroot "${NETBOOT_ROOT}" apt install -y 'server-minimal^' 'openssh-server^' linux-generic nfs-common --no-install-recommends
     chroot "${NETBOOT_ROOT}" apt install -y apt-utils less networkd-dispatcher tree iputils-ping fping tcsh net-tools nload \
-                                            lm-sensors
+                                            lm-sensors hwloc-nox cpuid iotop-c
     # === Remove unwanted packages ===
     chroot "${NETBOOT_ROOT}" apt remove -y --purge snapd unattended-upgrades apparmor plymouth
     chroot "${NETBOOT_ROOT}" apt remove -y --purge --autoremove landscape-common ubuntu-release-upgrader-core update-notifier-common
