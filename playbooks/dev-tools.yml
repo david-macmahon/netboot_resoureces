@@ -14,6 +14,7 @@
         name:
           # basics
           - gcc
+          - gcc-11
           - gcc-doc
           - gdb
           - gdb-doc
@@ -26,11 +27,14 @@
           - autotools-dev
           - libtool
           - libtool-doc
+          - pkg-config
           # cmake and friends
           - cmake
           - cmake-doc
           - ninja-build
           - meson
+          # boost
+          - libboost-all-dev
           # HDF5
           - hdf5-tools
           - libhdf5-dev
