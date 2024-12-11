@@ -5,11 +5,11 @@
   become: true
   vars:
     # Latest version
-    julia_version: '1.10.4'
-    julia_checksum: 'sha256:079f61757c3b5b40d2ade052b3cc4816f50f7ef6df668825772562b3746adff1'
+    julia_version: '1.11.2'
+    julia_checksum: 'sha256:8a372ad262d4d4d55a1044f4fe3bce7c9a4a3ce8c513d2470e58e8071eecd476'
     ## Latest LTS version
-    #julia_version: '1.6.7'
-    #julia_checksum: 'sha256:6c4522d595e4cbcd00157ac458a72f8aec01757053d2073f99daa39e442b2a36'
+    #julia_version: '1.10.7'
+    #julia_checksum: 'sha256:21b2c69806aacf191d7c81806c7d9918bddab30c7b5b8d4251389c3abe274334'
     julia_base: /opt/julia
   tasks:
     - name: ensure julia_base is an absolute path
